@@ -5,7 +5,6 @@
 # - Update the `package.json` version to the specified version (when triggered
 #   by `workflow_dispatch`), commit the changes and tag it.
 # - Upload the release assets to GitHub.
-# - Publish the package to npm.
 #
 # # Usage
 #
@@ -60,7 +59,6 @@ jobs:
         uses: actions/setup-node@v6
         with:
           node-version: "24.16.0"
-          registry-url: "https://registry.npmjs.org"
 
       - name: Install pnpm
         uses: pnpm/action-setup@v6
@@ -164,30 +162,5 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Prepare for npm
-        run: |
-          # Delete the generated dist tarball
-          rm -f dist/openlist-frontend-dist-v*.tar.gz
-          rm -f lite-dist/openlist-frontend-dist-lite-v*.tar.gz
-          # Copy the lite version
-          mkdir dist/lite
-          cp -r lite-dist/. dist/lite/
-
-          if ! jq -e '.name and .version' package.json > /dev/null; then
-            echo "Error: Invalid package.json"
-            exit 1
-          fi
-
-      - name: Publish npm (Trusted publishing)
-        run: |
-          if [ "${{ secrets[format('{0}', 'NPM_PUBLISH')] }}" = "yes" ]; then
-            echo "NPM_PUBLISH=yes, publishing to npm with trusted publishing..."
-            pnpm publish --no-git-checks --access public --provenance
-          else
-            echo "NPM_PUBLISH is not yes, performing dry run"
-            pnpm publish --dry-run --no-git-checks --access public
-          fi
-
 permissions:
   contents: write
-  id-token: write
