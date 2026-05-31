@@ -10,13 +10,14 @@ import { RecursiveMove } from "./RecursiveMove"
 import { RemoveEmptyDirectory } from "./RemoveEmptyDirectory"
 import { BatchRename } from "./BatchRename"
 import { OfflineDownloadEnhanced } from "./OfflineDownloadEnhanced"
-import { PackageDownloadModal } from "./Download"
+import { PackageDownloadModal, ServerDownloadHandler } from "./Download"
 import { lazy } from "solid-js"
 import { ModalWrapper } from "./ModalWrapper"
 import { LocalSettings } from "./LocalSettings"
 import { BackTop } from "./BackTop"
 import { Decompress } from "./Decompress"
 import { Share } from "./Share"
+import { ServerDownloadTasks } from "./ServerDownloadTasks"
 
 const Upload = lazy(() => import("../uploads/Upload"))
 
@@ -36,6 +37,8 @@ export const Modal = () => {
       <BatchRename />
       <OfflineDownloadEnhanced />
       <PackageDownloadModal />
+      <ServerDownloadHandler />
+      <ServerDownloadTasks />
       <ModalWrapper name="upload" title="home.toolbar.upload">
         <Upload />
       </ModalWrapper>

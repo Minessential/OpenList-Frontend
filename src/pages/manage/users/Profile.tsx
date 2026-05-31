@@ -19,7 +19,14 @@ import { createSignal, For, JSXElement, onCleanup, Show } from "solid-js"
 import { LinkWithBase, MaybeLoading } from "~/components"
 import { useFetch, useManageTitle, useRouter, useT } from "~/hooks"
 import { setMe, me, getSettingBool } from "~/store"
-import { PEmptyResp, UserMethods, UserPermissions, PResp } from "~/types"
+import {
+  PEmptyResp,
+  UserMethods,
+  UserPermissions,
+  UserPermissionDisplayOrder,
+  getUserPermissionIndex,
+  PResp,
+} from "~/types"
 import { handleResp, handleRespWithoutNotify, notify, r } from "~/utils"
 import { WebauthnItem } from "./Webauthnitems"
 import { PublicKeys } from "./PublicKeys"
@@ -300,9 +307,11 @@ const Profile = () => {
         </Button>
       </Show>
       <HStack wrap="wrap" gap="$2" mt="$2">
-        <For each={UserPermissions}>
-          {(item, i) => (
-            <PermissionBadge can={UserMethods.can(me(), i())}>
+        <For each={UserPermissionDisplayOrder}>
+          {(item) => (
+            <PermissionBadge
+              can={UserMethods.can(me(), getUserPermissionIndex(item))}
+            >
               {t(`users.permissions.${item}`)}
             </PermissionBadge>
           )}

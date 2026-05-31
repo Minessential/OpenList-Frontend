@@ -3,8 +3,9 @@ import { createMemo, createSignal, For, Match, Show, Switch } from "solid-js"
 import { useRouter, useT } from "~/hooks"
 import { BiSolidRightArrow } from "solid-icons/bi"
 import { onClose } from "./Header"
-import { UserMethods, UserRole } from "~/types"
+import { UserMethods, UserPermission, UserRole } from "~/types"
 import { me } from "~/store"
+import { userCan } from "~/store"
 import { AnchorWithBase } from "~/components"
 import { Link } from "@solidjs/router"
 import { hoverColor, joinBase } from "~/utils"
@@ -16,6 +17,7 @@ export interface SideMenuItemProps {
   icon?: IconTypes
   children?: SideMenuItemProps[]
   role?: number
+  permission?: UserPermission
   external?: true
   refresh?: true
 }
@@ -27,6 +29,7 @@ const SideMenuItem = (props: SideMenuItemProps) => {
       else if (props.role === UserRole.GENERAL && !UserMethods.is_general(me()))
         return false
     }
+    if (props.permission && !userCan(props.permission)) return false
     return true
   })
   return (

@@ -3,6 +3,7 @@
     "see_hides": "Can see hiddens",
     "access_without_password": "Access without password",
     "offline_download": "Add offline download tasks",
+    "server_download": "Add server download tasks",
     "write_content": "Write content (Create / Upload / Modify)",
     "rename": "Rename",
     "move": "Move",

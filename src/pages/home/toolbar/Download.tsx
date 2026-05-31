@@ -15,16 +15,41 @@ import {
 import { createSignal, lazy, onCleanup, Show, Suspense } from "solid-js"
 import { FullLoading } from "~/components"
 import { useT, useDownload } from "~/hooks"
-import { getSettingBool, me } from "~/store"
+import { getSettingBool, me, selectedObjs, selectAll, userCan } from "~/store"
 import { UserMethods } from "~/types"
-import { bus } from "~/utils"
+import {
+  bus,
+  canShowServerDownloadAction,
+  handleResp,
+  hasServerDownloadDirectories,
+  notify,
+  serverDownload,
+} from "~/utils"
 import { CenterIcon } from "./Icon"
+import { useRouter } from "~/hooks"
+
+export const canServerDownloadSelected = () =>
+  canShowServerDownloadAction(userCan("server_download"), selectedObjs())
 
 export const Download = () => {
   const t = useT()
   const colorScheme = "neutral"
   const { batchDownloadSelected, sendToAria2, playlistDownloadSelected } =
     useDownload()
+  const { pathname, isShare } = useRouter()
+  const submitServerDownload = async () => {
+    if (isShare() || !canServerDownloadSelected()) return
+    if (hasServerDownloadDirectories(selectedObjs())) {
+      notify.warning(t("home.toolbar.server_download_not_support_dir"))
+      return
+    }
+    const names = selectedObjs().map((obj) => obj.name)
+    const resp = await serverDownload(pathname(), names)
+    handleResp(resp, () => {
+      notify.success(resp.message)
+      selectAll(false)
+    })
+  }
   return (
     <Menu placement="top" offset={10}>
       <MenuTrigger as={CenterIcon} name="download" />
@@ -32,6 +57,11 @@ export const Download = () => {
         <MenuItem colorScheme={colorScheme} onSelect={batchDownloadSelected}>
           {t("home.toolbar.batch_download")}
         </MenuItem>
+        <Show when={!isShare() && canServerDownloadSelected()}>
+          <MenuItem colorScheme={colorScheme} onSelect={submitServerDownload}>
+            {t("home.toolbar.server_download")}
+          </MenuItem>
+        </Show>
         <Show
           when={
             UserMethods.is_admin(me()) || getSettingBool("package_download")
@@ -117,4 +147,30 @@ export const PackageDownloadModal = () => {
       </ModalContent>
     </Modal>
   )
+}
+
+export const ServerDownloadHandler = () => {
+  const t = useT()
+  const { pathname, isShare } = useRouter()
+  const handler = async (name: string) => {
+    if (name !== "server_download") return
+    if (isShare() || !canServerDownloadSelected()) return
+    if (hasServerDownloadDirectories(selectedObjs())) {
+      notify.warning(t("home.toolbar.server_download_not_support_dir"))
+      return
+    }
+    const resp = await serverDownload(
+      pathname(),
+      selectedObjs().map((obj) => obj.name),
+    )
+    handleResp(resp, () => {
+      notify.success(resp.message)
+      selectAll(false)
+    })
+  }
+  bus.on("tool", handler)
+  onCleanup(() => {
+    bus.off("tool", handler)
+  })
+  return null
 }

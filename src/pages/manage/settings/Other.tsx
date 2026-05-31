@@ -10,8 +10,8 @@ import {
 import { createSignal } from "solid-js"
 import { FolderChooseInput, MaybeLoading } from "~/components"
 import { useFetch, useManageTitle, useT, useUtil } from "~/hooks"
-import { Group, SettingItem, PResp } from "~/types"
-import { handleResp, notify, r } from "~/utils"
+import { Group, SettingItem, PResp, PEmptyResp } from "~/types"
+import { getTarget, handleResp, notify, r } from "~/utils"
 import { Item } from "./SettingItem"
 
 const OtherSettings = () => {
@@ -24,6 +24,7 @@ const OtherSettings = () => {
   const [qbitSeedTime, setQbitSeedTime] = createSignal("")
   const [transmissionUrl, setTransmissionUrl] = createSignal("")
   const [transmissionSeedTime, setTransmissionSeedTime] = createSignal("")
+  const [serverDownloadDir, setServerDownloadDir] = createSignal("")
   const [pan115TempDir, set115TempDir] = createSignal("")
   const [pan115OpenTempDir, set115OpenTempDir] = createSignal("")
   const [pan123OpenTempDir, set123OpenTempDir] = createSignal("")
@@ -55,6 +56,18 @@ const OtherSettings = () => {
         uri: transmissionUrl(),
         seedtime: transmissionSeedTime(),
       }),
+  )
+  const [saveServerDownloadLoading, saveServerDownload] = useFetch(
+    (): PEmptyResp =>
+      r.post(
+        "/admin/setting/save",
+        getTarget([
+          {
+            ...settings().find((i) => i.key === "server_download_dir")!,
+            value: serverDownloadDir(),
+          },
+        ]),
+      ),
   )
   const [set123PanLoading, set123Pan] = useFetch(
     (): PResp<string> =>
@@ -121,6 +134,9 @@ const OtherSettings = () => {
       )
       setTransmissionSeedTime(
         data.find((i) => i.key === "transmission_seedtime")?.value || "",
+      )
+      setServerDownloadDir(
+        data.find((i) => i.key === "server_download_dir")?.value || "",
       )
       set115TempDir(data.find((i) => i.key === "115_temp_dir")?.value || "")
       set115OpenTempDir(
@@ -225,6 +241,26 @@ const OtherSettings = () => {
           const resp = await setTransmission()
           handleResp(resp, (data) => {
             notify.success(data)
+          })
+        }}
+      >
+        {t("global.save")}
+      </Button>
+      <Heading my="$2">{t("settings_other.server_download")}</Heading>
+      <SimpleGrid gap="$2" columns={{ "@initial": 1, "@md": 2 }}>
+        <Item
+          {...settings().find((i) => i.key === "server_download_dir")!}
+          value={serverDownloadDir()}
+          onChange={(str) => setServerDownloadDir(str)}
+        />
+      </SimpleGrid>
+      <Button
+        my="$2"
+        loading={saveServerDownloadLoading()}
+        onClick={async () => {
+          const resp = await saveServerDownload()
+          handleResp(resp, () => {
+            notify.success(t("global.save_success"))
           })
         }}
       >

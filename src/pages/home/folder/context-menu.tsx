@@ -19,6 +19,7 @@ import { players } from "../previews/video_box"
 import { BsPlayCircleFill } from "solid-icons/bs"
 import { isArchive } from "~/store/archive"
 import axios from "axios"
+import { canServerDownloadSelected } from "../toolbar/Download"
 
 const ItemContent = (props: { name: string }) => {
   const t = useT()
@@ -161,6 +162,20 @@ export const ContextMenu = () => {
         >
           <ItemContent name="download" />
         </Item>
+        <Item
+          hidden={() => {
+            return isShare() || !canServerDownloadSelected()
+          }}
+          onClick={() => {
+            if (selectedObjs().some((o) => o.is_dir)) {
+              notify.warning(t("home.toolbar.server_download_not_support_dir"))
+              return
+            }
+            bus.emit("tool", "server_download")
+          }}
+        >
+          <ItemContent name="server_download" />
+        </Item>
         <Submenu
           hidden={({ props }) => {
             return props.type !== ObjType.VIDEO
@@ -231,6 +246,21 @@ export const ContextMenu = () => {
             </Item>
           </Show>
           <Item onClick={sendToAria2}>{t("home.toolbar.send_aria2")}</Item>
+          <Show when={!isShare() && canServerDownloadSelected()}>
+            <Item
+              onClick={() => {
+                if (selectedObjs().some((o) => o.is_dir)) {
+                  notify.warning(
+                    t("home.toolbar.server_download_not_support_dir"),
+                  )
+                  return
+                }
+                bus.emit("tool", "server_download")
+              }}
+            >
+              {t("home.toolbar.server_download")}
+            </Item>
+          </Show>
         </Submenu>
       </Show>
     </Menu>

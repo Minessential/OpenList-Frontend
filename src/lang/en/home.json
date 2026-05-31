@@ -94,6 +94,13 @@
     "offline_download": "Offline download",
     "offline_download-tips": "One URL per line",
     "offline_download_torrent": "BT Fetch",
+    "server_download": "Server Download",
+    "server_download_not_support_dir": "Server download does not support folders yet",
+    "server_download_tasks": "Download tasks",
+    "server_download_open_panel": "Open download tasks",
+    "server_download_recent_created": "Newly created tasks are highlighted",
+    "server_download_running": "Running",
+    "server_download_done": "Completed",
     "offline_download_enhanced": {
       "tab_link": "Link Download",
       "tab_bt": "BT Download",

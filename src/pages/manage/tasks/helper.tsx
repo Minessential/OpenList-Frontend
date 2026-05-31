@@ -84,6 +84,22 @@ export const getOfflineDownloadTransferNameAnalyzer = (): TaskNameAnalyzer => {
   }
 }
 
+export const getServerDownloadNameAnalyzer = (): TaskNameAnalyzer => {
+  const t = useT()
+  return {
+    regex: /^server download \[(.*)]\((.*)\) to \((.+)\)$/,
+    title: (matches) => {
+      const parts = matches[2].split("/")
+      return parts[parts.length - 1] || "/"
+    },
+    attrs: {
+      [t(`tasks.attr.server_download.src`)]: (matches) =>
+        getPath(matches[1], matches[2]),
+      [t(`tasks.attr.server_download.dst`)]: (matches) => <p>{matches[3]}</p>,
+    },
+  }
+}
+
 export const getDecompressNameAnalyzer = (): TaskNameAnalyzer => {
   const t = useT()
   return {

@@ -24,6 +24,7 @@
     "sso": "Single Sign-On",
     "docs": "Documentation",
     "offline_download": "Offline Download",
+    "server_download": "Server Download",
     "ldap": "LDAP",
     "s3": "S3",
     "ftp": "FTP",

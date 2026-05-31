@@ -12,6 +12,7 @@ import {
   TorrentInfo,
   TorrentUploadParseResult,
   TorrentRapidUploadResult,
+  ServerDownloadCreateResp,
 } from "~/types"
 import { r } from "."
 
@@ -222,6 +223,13 @@ export const offlineDownload = (
   delete_policy: string,
 ): PEmptyResp => {
   return r.post(`/fs/add_offline_download`, { path, urls, tool, delete_policy })
+}
+
+export const serverDownload = (
+  src_dir: string,
+  names: string[],
+): PResp<ServerDownloadCreateResp> => {
+  return r.post("/fs/server_download", { src_dir, names })
 }
 
 export const fetchText = async (

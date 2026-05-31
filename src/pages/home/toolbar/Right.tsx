@@ -7,12 +7,17 @@ import { objStore, selectAll, State, toggleCheckbox, userCan } from "~/store"
 import { bus } from "~/utils"
 import { operations } from "./operations"
 import { IoMagnetOutline } from "solid-icons/io"
-import { AiOutlineCloudUpload, AiOutlineSetting } from "solid-icons/ai"
+import {
+  AiOutlineCloudUpload,
+  AiOutlineSetting,
+  AiOutlineDownload,
+} from "solid-icons/ai"
 import { RiSystemRefreshLine } from "solid-icons/ri"
 import { usePath, useRouter } from "~/hooks"
 import { Motion } from "solid-motionone"
 import { isTocVisible, setTocDisabled } from "~/components"
 import { BiSolidBookContent } from "solid-icons/bi"
+import { openServerDownloadTasks } from "~/store"
 
 export const Right = () => {
   const { isOpen, onToggle } = createDisclosure({
@@ -160,6 +165,15 @@ export const Right = () => {
                 tips="offline_download"
                 onClick={() => {
                   bus.emit("tool", "offline_download")
+                }}
+              />
+            </Show>
+            <Show when={!isShare() && userCan("server_download")}>
+              <RightIcon
+                as={AiOutlineDownload}
+                tips="server_download_open_panel"
+                onClick={() => {
+                  openServerDownloadTasks()
                 }}
               />
             </Show>

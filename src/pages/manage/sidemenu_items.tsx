@@ -14,6 +14,7 @@ import {
   BsBucket,
   BsHddNetwork,
   BsArrowLeftRight,
+  BsCloudDownloadFill,
 } from "solid-icons/bs"
 import { FiLogIn } from "solid-icons/fi"
 import { SiMetabase } from "solid-icons/si"
@@ -119,6 +120,14 @@ export const side_menu_items: SideMenuItem[] = [
         to: "/@manage/tasks/offline_download",
         role: UserRole.GENERAL,
         component: lazy(() => import("./tasks/offline_download")),
+      },
+      {
+        title: "manage.sidemenu.server_download",
+        icon: BsCloudDownloadFill,
+        to: "/@manage/tasks/server_download",
+        role: UserRole.GENERAL,
+        permission: "server_download",
+        component: lazy(() => import("./tasks/ServerDownload")),
       },
       // {
       //   title: "manage.sidemenu.aria2",

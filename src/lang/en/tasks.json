@@ -1,6 +1,7 @@
 {
   "offline_download": "Download file to local device",
   "offline_download_transfer": "Transfer downloaded file to corresponding storage",
+  "server_download": "Download file on server",
   "upload": "Upload file to corresponding storage",
   "copy": "Copy file from a storage to another storage",
   "move": "Move file from a storage to another storage",
@@ -26,6 +27,8 @@
   "retry_selected": "Retry Selected",
   "cancel_selected": "Cancel Selected",
   "delete_selected": "Delete Selected",
+  "delete_server_download_confirm": "Delete {{count}} selected task(s)? {{completed}} completed task(s) are included.",
+  "delete_server_download_files": "Also delete completed task files",
   "filter": "Filter",
   "expand": "Expand",
   "fold": "Fold",
@@ -51,6 +54,10 @@
       "transfer_src": "Source Path",
       "transfer_src_local": "Source Path (Local)",
       "transfer_dst": "Destination Path"
+    },
+    "server_download": {
+      "src": "Source Path",
+      "dst": "Local Path"
     },
     "decompress": {
       "src": "Source Path",

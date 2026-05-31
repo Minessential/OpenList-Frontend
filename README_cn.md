@@ -1,4 +1,4 @@
-# OpenList (frontend)
+# OpenList（前端）
 
 ![License MIT](https://img.shields.io/badge/license-MIT-green)
 [![GitHub package.json version](https://img.shields.io/github/package-json/v/OpenListTeam/OpenList-Frontend)](./package.json)
@@ -6,17 +6,17 @@
 [![NPM Downloads](https://img.shields.io/npm/dw/%40openlist-frontend%2Fopenlist-frontend)](https://www.npmjs.com/package/@openlist-frontend/openlist-frontend)
 [![NPM Last Update](https://img.shields.io/npm/last-update/%40openlist-frontend%2Fopenlist-frontend)](https://www.npmjs.com/package/@openlist-frontend/openlist-frontend)
 
-- English | [中文](./README_cn.md)
+- [English](./README.md) | 中文
 
-## Secondary Development Notice
+## 二次开发说明
 
-This repository contains secondary-development frontend changes based on OpenList Frontend. I am not the original author of OpenList Frontend and am not claiming upstream authorship; the original project and upstream credits belong to the OpenList Team and their contributors.
+本仓库包含基于 OpenList Frontend 的二次开发前端修改。我不是 OpenList Frontend 原仓库作者，也不声明对上游项目的作者身份；原项目及上游贡献归 OpenList Team 及其贡献者所有。
 
-The current worktree adds UI and i18n support for server-side download, including toolbar/context-menu entries, a server download task panel, management-side task access, user permission text, server download directory settings text, and English/Simplified Chinese copy. Please review these changes as downstream modifications.
+当前工作区主要为服务器下载功能新增了前端界面和多语言支持，包括工具栏/右键菜单入口、服务器下载任务面板、管理端任务入口、用户权限文案、服务器下载目录设置文案，以及英文和简体中文文案。请将这些内容视为下游修改。
 
-## BUILD
+## 构建
 
-You can use [the build script](./build.sh).
+可以使用 [构建脚本](./build.sh)。
 
 ```plaintext
 Usage: ./build.sh [--dev|--release] [--compress|--no-compress] [--enforce-tag] [--skip-i18n] [--lite]
@@ -37,10 +37,10 @@ Environment variables:
   OPENLIST_FRONTEND_BUILD_SKIP_I18N=true|false (default: false)
 ```
 
-## LICENSE
+## 许可证
 
 MIT
 
-## CREDITS
+## 致谢
 
-[OpenList](https://github.com/OpenListTeam/OpenList) is a resilient, community-driven fork of [AList](https://github.com/AlistGo/alist) — built to defend open source against trust-based attacks.
+[OpenList](https://github.com/OpenListTeam/OpenList) 是一个有韧性、社区驱动的 [AList](https://github.com/AlistGo/alist) 分支，旨在防御基于信任的开源攻击。

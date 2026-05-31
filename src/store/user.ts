@@ -1,13 +1,18 @@
 import { createSignal } from "solid-js"
-import { User, UserMethods, UserPermissions } from "~/types"
+import {
+  User,
+  UserMethods,
+  getUserPermissionIndex,
+  UserPermission,
+} from "~/types"
 
 export type Me = User & { otp: boolean }
 const [me, setMe] = createSignal<Me>({} as Me)
 
-type Permission = (typeof UserPermissions)[number]
-export const userCan = (p: Permission) => {
+export const userCan = (p: UserPermission) => {
   const u = me()
-  return UserMethods.can(u, UserPermissions.indexOf(p))
+  if (UserMethods.is_guest(u)) return false
+  return UserMethods.can(u, getUserPermissionIndex(p))
 }
 
 export { me, setMe }

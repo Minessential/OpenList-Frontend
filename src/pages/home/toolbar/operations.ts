@@ -9,6 +9,7 @@ import { AiOutlineCloudDownload } from "solid-icons/ai"
 import { ImMoveUp } from "solid-icons/im"
 import { BiRegularRename } from "solid-icons/bi"
 import { FaSolidMagnet } from "solid-icons/fa"
+import { BsCloudDownloadFill } from "solid-icons/bs"
 
 export interface Operations {
   [key: string]: {
@@ -31,6 +32,7 @@ export const operations: Operations = {
   new_file: { icon: CgFileAdd, p: true },
   cancel_select: { icon: TiDeleteOutline },
   download: { icon: AiOutlineCloudDownload, color: "$primary9" },
+  server_download: { icon: BsCloudDownloadFill, color: "$success9" },
   share: { icon: CgShare, color: "$primary9" },
   offline_download_torrent: { icon: FaSolidMagnet, color: "$accent9" },
 }

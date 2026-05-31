@@ -22,11 +22,12 @@ import {
 } from "~/hooks"
 import { handleResp, notify, r } from "~/utils"
 import {
-  UserPermissions,
+  UserPermissionDisplayOrder,
   User,
   UserMethods,
   PPageResp,
   PEmptyResp,
+  getUserPermissionIndex,
 } from "~/types"
 import { DeletePopover } from "../common/DeletePopover"
 import { Wether } from "~/components"
@@ -49,13 +50,15 @@ const Permissions = (props: { user: User }) => {
   const color = (can: boolean) => `$${can ? "success" : "danger"}9`
   return (
     <HStack spacing="$0_5">
-      <For each={UserPermissions}>
-        {(item, i) => (
+      <For each={UserPermissionDisplayOrder}>
+        {(item) => (
           <Tooltip label={t(`users.permissions.${item}`)}>
             <Box
               boxSize="$2"
               rounded="$full"
-              bg={color(UserMethods.can(props.user, i()))}
+              bg={color(
+                UserMethods.can(props.user, getUserPermissionIndex(item)),
+              )}
             ></Box>
           </Tooltip>
         )}

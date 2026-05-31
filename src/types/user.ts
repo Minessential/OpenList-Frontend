@@ -34,6 +34,32 @@ export const UserPermissions = [
   "decompress",
   "share",
   "customize_share_id",
+  "server_download",
+] as const
+
+export type UserPermission = (typeof UserPermissions)[number]
+
+export const getUserPermissionIndex = (permission: UserPermission) =>
+  UserPermissions.indexOf(permission)
+
+export const UserPermissionDisplayOrder = [
+  "see_hides",
+  "access_without_password",
+  "offline_download",
+  "server_download",
+  "write_content",
+  "rename",
+  "move",
+  "copy",
+  "delete",
+  "webdav_read",
+  "webdav_manage",
+  "ftp_read",
+  "ftp_manage",
+  "read_archives",
+  "decompress",
+  "share",
+  "customize_share_id",
 ] as const
 
 export const UserMethods = {
