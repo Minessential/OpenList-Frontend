@@ -148,7 +148,7 @@ build_project() {
 
     log_step "==== Building i18n ===="
     if [[ "$SKIP_I18N" == "false" ]]; then
-        pnpm i18n:release
+        pnpm i18n:build
     else
         fetch_i18n_from_release
     fi

@@ -126,9 +126,6 @@ jobs:
         run: |
           chmod +x build.sh
           ./build.sh --release --compress
-        env:
-          CROWDIN_PROJECT_ID: ${{ secrets.CROWDIN_PROJECT_ID }}
-          CROWDIN_PERSONAL_TOKEN: ${{ secrets.CROWDIN_PERSONAL_TOKEN }}
 
       - name: Move regular build
         run: |
@@ -139,9 +136,6 @@ jobs:
         run: |
           chmod +x build.sh
           ./build.sh --release --compress --lite
-        env:
-          CROWDIN_PROJECT_ID: ${{ secrets.CROWDIN_PROJECT_ID }}
-          CROWDIN_PERSONAL_TOKEN: ${{ secrets.CROWDIN_PERSONAL_TOKEN }}
 
       - name: Move lite build and restore regular build
         run: |
