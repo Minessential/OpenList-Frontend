@@ -51,6 +51,7 @@ export interface TaskLocalContainer {
 
 export interface TaskLocalSetter {
   setLocal: (l: TaskLocal) => void
+  onChanged: () => void
 }
 
 export type TaskAttribute = TaskInfo & TaskViewAttribute & TaskLocalContainer
@@ -209,8 +210,13 @@ export const Tasks = (props: TasksProps) => {
     (): PEmptyResp => r.post(`/task/${props.type}/retry_some`, getSelectedId()),
   )
   const [operateSelectedLoading, operateSelected] = useFetch(
-    (): PEmptyResp =>
-      r.post(`/task/${props.type}/${operateName}_some`, getSelectedId()),
+    (): PEmptyResp | PResp<Record<string, string>> =>
+      props.type === "server_download"
+        ? r.post("/task/server_download/delete_with_files", {
+            ids: getSelectedId(),
+            delete_files: false,
+          })
+        : r.post(`/task/${props.type}/${operateName}_some`, getSelectedId()),
   )
   const notifyIndividualError = (msg: Record<string, string>) => {
     Object.entries(msg).forEach(([key, value]) => {
@@ -219,7 +225,10 @@ export const Tasks = (props: TasksProps) => {
   }
   const [page, setPage] = createSignal(1)
   const pageSize = 20
-  const operateName = props.done === "undone" ? "cancel" : "delete"
+  const operateName =
+    props.type === "server_download" || props.done === "done"
+      ? "delete"
+      : "cancel"
   const curTasks = createMemo(() => {
     const start = (page() - 1) * pageSize
     const end = start + pageSize
@@ -404,7 +413,12 @@ export const Tasks = (props: TasksProps) => {
           </Flex>
         </HStack>
         {curTasks().map((task) => (
-          <Task {...task} {...props} setLocal={getLocalSetter(task.id)} />
+          <Task
+            {...task}
+            {...props}
+            setLocal={getLocalSetter(task.id)}
+            onChanged={refresh}
+          />
         ))}
       </VStack>
       <Paginator

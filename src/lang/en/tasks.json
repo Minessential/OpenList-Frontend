@@ -10,6 +10,9 @@
   "done": "Completed",
   "undone": "Running",
   "clear_succeeded": "Clear Succeeded",
+  "pause": "Pause",
+  "paused": "Paused",
+  "resume": "Resume",
   "retry": "Retry",
   "retry_failed": "Retry Failed",
   "state": {
@@ -57,7 +60,10 @@
     },
     "server_download": {
       "src": "Source Path",
-      "dst": "Local Path"
+      "dst": "Local Path",
+      "downloaded_bytes": "Downloaded",
+      "resume_offset": "Resume Offset",
+      "partial_local_path": "Partial File"
     },
     "decompress": {
       "src": "Source Path",

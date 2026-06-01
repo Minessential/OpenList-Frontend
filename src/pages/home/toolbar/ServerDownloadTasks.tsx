@@ -46,9 +46,12 @@ import {
   UserMethods,
 } from "~/types"
 import {
+  canPauseServerDownloadTask,
   canRetryServerDownloadTask,
+  canResumeServerDownloadTask,
   deriveServerDownloadProgressBytes,
   getFileSize,
+  getServerDownloadStateText,
   handleResp,
   handleRespWithoutNotify,
   notify,
@@ -61,8 +64,9 @@ type TaskWithView = TaskInfo & {
   prevProgress?: number
 }
 
-const getTaskStateColor = (state: number) => {
-  switch (state) {
+const getTaskStateColor = (task: TaskInfo) => {
+  if (task.paused) return "warning"
+  switch (task.state) {
     case TaskStateEnum.Succeeded:
       return "success"
     case TaskStateEnum.Failed:
@@ -99,11 +103,20 @@ const TaskItem = (props: {
       props.task.progress,
       props.task.total_bytes,
       props.task.downloaded_bytes,
+      props.task.resume_offset,
     ),
   )
   const [retryLoading, retry] = useFetch(
     (): PEmptyResp =>
       r.post(`/task/server_download/retry?tid=${props.task.id}`),
+  )
+  const [pauseLoading, pause] = useFetch(
+    (): PEmptyResp =>
+      r.post(`/task/server_download/pause?tid=${props.task.id}`),
+  )
+  const [resumeLoading, resume] = useFetch(
+    (): PEmptyResp =>
+      r.post(`/task/server_download/resume?tid=${props.task.id}`),
   )
 
   return (
@@ -149,8 +162,8 @@ const TaskItem = (props: {
             </Text>
           </VStack>
         </HStack>
-        <Badge colorScheme={getTaskStateColor(props.task.state) as any}>
-          {t(`tasks.state.${props.task.state}`)}
+        <Badge colorScheme={getTaskStateColor(props.task) as any}>
+          {t(getServerDownloadStateText(props.task))}
         </Badge>
       </HStack>
       <Progress w="$full" value={props.task.progress} rounded="$full" size="sm">
@@ -160,6 +173,22 @@ const TaskItem = (props: {
         {getFileSize(progressBytes().downloadedBytes)} /{" "}
         {getFileSize(progressBytes().totalBytes)}
       </Text>
+      <Show when={props.task.resume_offset !== undefined}>
+        <Text fontSize="$xs" color="$neutral10">
+          {t("tasks.attr.server_download.resume_offset")}:{" "}
+          {getFileSize(props.task.resume_offset ?? 0)}
+        </Text>
+      </Show>
+      <Show when={props.task.partial_local_path}>
+        <Text
+          fontSize="$xs"
+          color="$neutral10"
+          css={{ wordBreak: "break-all" }}
+        >
+          {t("tasks.attr.server_download.partial_local_path")}:{" "}
+          {props.task.partial_local_path}
+        </Text>
+      </Show>
       <Text fontSize="$sm" color="$neutral11">
         {props.task.status || "-"}
       </Text>
@@ -168,18 +197,51 @@ const TaskItem = (props: {
           {props.task.failed_reason || getTaskErrorText(props.task)}
         </Text>
       </Show>
-      <Show when={canRetryServerDownloadTask(props.task.state)}>
-        <Button
-          size="sm"
-          loading={retryLoading()}
-          onClick={async () => {
-            const resp = await retry()
-            handleResp(resp, props.onRetried)
-          }}
+      <HStack spacing="$2" flexWrap="wrap">
+        <Show when={canPauseServerDownloadTask(props.task)}>
+          <Button
+            size="sm"
+            colorScheme="warning"
+            loading={pauseLoading()}
+            onClick={async () => {
+              const resp = await pause()
+              handleResp(resp, props.onRetried)
+            }}
+          >
+            {t("tasks.pause")}
+          </Button>
+        </Show>
+        <Show when={canResumeServerDownloadTask(props.task)}>
+          <Button
+            size="sm"
+            colorScheme="success"
+            loading={resumeLoading()}
+            onClick={async () => {
+              const resp = await resume()
+              handleResp(resp, props.onRetried)
+            }}
+          >
+            {t("tasks.resume")}
+          </Button>
+        </Show>
+        <Show
+          when={
+            canRetryServerDownloadTask(props.task.state) &&
+            !canResumeServerDownloadTask(props.task)
+          }
         >
-          {t("tasks.retry")}
-        </Button>
-      </Show>
+          <Button
+            size="sm"
+            loading={retryLoading()}
+            onClick={async () => {
+              const resp = await retry()
+              handleResp(resp, props.onRetried)
+            }}
+          >
+            {t("tasks.retry")}
+          </Button>
+        </Show>
+      </HStack>
     </VStack>
   )
 }

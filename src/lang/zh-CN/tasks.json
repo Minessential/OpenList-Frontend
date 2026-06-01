@@ -10,6 +10,9 @@
   "done": "已完成",
   "undone": "运行中",
   "clear_succeeded": "清除成功项",
+  "pause": "暂停",
+  "paused": "已暂停",
+  "resume": "继续",
   "retry": "重试",
   "retry_failed": "重试失败项",
   "state": {
@@ -57,7 +60,10 @@
     },
     "server_download": {
       "src": "源路径",
-      "dst": "本地路径"
+      "dst": "本地路径",
+      "downloaded_bytes": "已下载",
+      "resume_offset": "续传位置",
+      "partial_local_path": "临时文件"
     },
     "decompress": {
       "src": "源路径",

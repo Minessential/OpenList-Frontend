@@ -17,23 +17,19 @@ import {
 } from "@hope-ui/solid"
 import { createSignal, For, Show } from "solid-js"
 import { useT, useFetch } from "~/hooks"
-import { PEmptyResp } from "~/types"
-import { handleResp, notify, r } from "~/utils"
+import { PEmptyResp, PResp, TaskStateEnum } from "~/types"
+import {
+  canPauseServerDownloadTask,
+  canResumeServerDownloadTask,
+  deriveServerDownloadProgressBytes,
+  getFileSize,
+  getServerDownloadStateText,
+  handleResp,
+  notify,
+  r,
+} from "~/utils"
 import { TaskAttribute, TaskLocalSetter, TasksProps } from "./Tasks"
 import { me } from "~/store"
-
-enum TaskStateEnum {
-  Pending,
-  Running,
-  Succeeded,
-  Canceling,
-  Canceled,
-  Errored,
-  Failing,
-  Failed,
-  WaitingRetry,
-  BeforeRetry,
-}
 
 const StateMap: Record<
   string,
@@ -77,6 +73,19 @@ export const TaskState = (props: { state: number }) => {
   )
 }
 
+export const ServerDownloadTaskState = (props: { task: TaskAttribute }) => {
+  const t = useT()
+  return (
+    <Badge
+      colorScheme={
+        props.task.paused ? "warning" : (StateMap[props.task.state] ?? "info")
+      }
+    >
+      {t(getServerDownloadStateText(props.task))}
+    </Badge>
+  )
+}
+
 export type TaskOrderBy = "name" | "creator" | "state" | "progress"
 
 export interface TaskCol {
@@ -89,13 +98,13 @@ export const cols: TaskCol[] = [
   {
     name: "name",
     textAlign: "left",
-    w: me().role === 2 ? "calc(100% - 660px)" : "calc(100% - 560px)",
+    w: me().role === 2 ? "calc(100% - 740px)" : "calc(100% - 640px)",
   },
   { name: "creator", textAlign: "center", w: me().role === 2 ? "100px" : "0" },
   { name: "state", textAlign: "center", w: "100px" },
   { name: "progress", textAlign: "left", w: "140px" },
   { name: "speed", textAlign: "center", w: "100px" },
-  { name: "operation", textAlign: "right", w: "220px" },
+  { name: "operation", textAlign: "right", w: "300px" },
 ]
 
 export interface TaskLocal {
@@ -116,19 +125,40 @@ const getTimeStr = (millisecond: number) => {
 
 export const Task = (props: TaskAttribute & TasksProps & TaskLocalSetter) => {
   const t = useT()
-  const operateName = props.done === "undone" ? "cancel" : "delete"
+  const isServerDownload = props.type === "server_download"
+  const operateName =
+    isServerDownload || props.done === "done" ? "delete" : "cancel"
   const canRetry =
     props.done === "done" &&
     (props.state === TaskStateEnum.Failed ||
-      props.state === TaskStateEnum.Canceled)
+      props.state === TaskStateEnum.Canceled) &&
+    !(isServerDownload && canResumeServerDownloadTask(props))
   const [operateLoading, operate] = useFetch(
-    (): PEmptyResp =>
-      r.post(`/task/${props.type}/${operateName}?tid=${props.id}`),
+    (): PEmptyResp | PResp<Record<string, string>> =>
+      isServerDownload
+        ? r.post("/task/server_download/delete_with_files", {
+            ids: [props.id],
+            delete_files: false,
+          })
+        : r.post(`/task/${props.type}/${operateName}?tid=${props.id}`),
   )
   const [retryLoading, retry] = useFetch(
     (): PEmptyResp => r.post(`/task/${props.type}/retry?tid=${props.id}`),
   )
+  const [pauseLoading, pause] = useFetch(
+    (): PEmptyResp => r.post(`/task/server_download/pause?tid=${props.id}`),
+  )
+  const [resumeLoading, resume] = useFetch(
+    (): PEmptyResp => r.post(`/task/server_download/resume?tid=${props.id}`),
+  )
   const [deleted, setDeleted] = createSignal(false)
+  const progressBytes = () =>
+    deriveServerDownloadProgressBytes(
+      props.progress,
+      props.total_bytes,
+      props.downloaded_bytes,
+      props.resume_offset,
+    )
   const matches: RegExpMatchArray | null = props.name.match(
     props.nameAnalyzer.regex,
   )
@@ -205,7 +235,12 @@ export const Task = (props: TaskAttribute & TasksProps & TaskLocalSetter) => {
           </Center>
         </Show>
         <Center w={cols[2].w}>
-          <TaskState state={props.state} />
+          <Show
+            when={isServerDownload}
+            fallback={<TaskState state={props.state} />}
+          >
+            <ServerDownloadTaskState task={props} />
+          </Show>
         </Center>
         <Progress
           w={cols[3].w}
@@ -232,6 +267,40 @@ export const Task = (props: TaskAttribute & TasksProps & TaskLocalSetter) => {
         </Center>
         <Flex w={cols[5].w} gap="$1">
           <Spacer />
+          <Show when={isServerDownload && canPauseServerDownloadTask(props)}>
+            <Button
+              size="sm"
+              colorScheme="warning"
+              loading={pauseLoading()}
+              onClick={async () => {
+                const resp = await pause()
+                handleResp(resp, () => {
+                  props.onChanged()
+                })
+              }}
+            >
+              {t(`tasks.pause`)}
+            </Button>
+          </Show>
+          <Show when={isServerDownload && canResumeServerDownloadTask(props)}>
+            <Button
+              size="sm"
+              colorScheme="success"
+              loading={resumeLoading()}
+              onClick={async () => {
+                const resp = await resume()
+                handleResp(resp, () => {
+                  notify.info(t("tasks.resume"))
+                  props.onChanged()
+                  if (props.done === "done") {
+                    setDeleted(true)
+                  }
+                })
+              }}
+            >
+              {t(`tasks.resume`)}
+            </Button>
+          </Show>
           <Show when={props.canRetry}>
             <Button
               size="sm"
@@ -242,6 +311,7 @@ export const Task = (props: TaskAttribute & TasksProps & TaskLocalSetter) => {
                 const resp = await retry()
                 handleResp(resp, () => {
                   notify.info(t("tasks.retry"))
+                  props.onChanged()
                   setDeleted(true)
                 })
               }}
@@ -255,8 +325,21 @@ export const Task = (props: TaskAttribute & TasksProps & TaskLocalSetter) => {
             loading={operateLoading()}
             onClick={async () => {
               const resp = await operate()
-              handleResp(resp, () => {
+              handleResp(resp, (data) => {
+                const errors =
+                  isServerDownload && data
+                    ? (data as Record<string, string>)
+                    : {}
+                if (isServerDownload && data) {
+                  Object.entries(errors).forEach(([key, value]) => {
+                    notify.error(`${key}: ${value}`)
+                  })
+                }
+                if (errors[props.id]) {
+                  return
+                }
                 notify.success(t("global.delete_success"))
+                props.onChanged()
                 setDeleted(true)
               })
             }}
@@ -329,6 +412,43 @@ export const Task = (props: TaskAttribute & TasksProps & TaskLocalSetter) => {
               {t(`tasks.attr.status`)}
             </GridItem>
             <GridItem color="$neutral9">{props.status}</GridItem>
+            <Show when={isServerDownload}>
+              <GridItem
+                color="$neutral9"
+                textAlign="right"
+                css={{ whiteSpace: "nowrap" }}
+              >
+                {t(`tasks.attr.server_download.downloaded_bytes`)}
+              </GridItem>
+              <GridItem color="$neutral9">
+                {getFileSize(progressBytes().downloadedBytes)} /{" "}
+                {getFileSize(progressBytes().totalBytes)}
+              </GridItem>
+              <Show when={props.resume_offset !== undefined}>
+                <GridItem
+                  color="$neutral9"
+                  textAlign="right"
+                  css={{ whiteSpace: "nowrap" }}
+                >
+                  {t(`tasks.attr.server_download.resume_offset`)}
+                </GridItem>
+                <GridItem color="$neutral9">
+                  {getFileSize(props.resume_offset ?? 0)}
+                </GridItem>
+              </Show>
+              <Show when={props.partial_local_path}>
+                <GridItem
+                  color="$neutral9"
+                  textAlign="right"
+                  css={{ whiteSpace: "nowrap" }}
+                >
+                  {t(`tasks.attr.server_download.partial_local_path`)}
+                </GridItem>
+                <GridItem color="$neutral9">
+                  {props.partial_local_path}
+                </GridItem>
+              </Show>
+            </Show>
             <Show when={props.error}>
               <GridItem
                 color="$danger9"

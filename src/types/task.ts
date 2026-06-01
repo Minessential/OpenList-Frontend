@@ -25,6 +25,10 @@ export interface TaskInfo {
   end_time: string | null
   total_bytes: number
   downloaded_bytes?: number
+  paused?: boolean
+  resumable?: boolean
+  resume_offset?: number
+  partial_local_path?: string
   src_path?: string
   src_storage_mp?: string
   dst_local_path?: string
