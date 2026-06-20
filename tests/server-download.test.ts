@@ -9,6 +9,7 @@ import {
   canPauseServerDownloadTask,
   canRetryServerDownloadTask,
   canResumeServerDownloadTask,
+  compareServerDownloadTasksStable,
   getServerDownloadStateText,
 } from "../src/utils/server_download.ts"
 
@@ -45,6 +46,31 @@ test("extract created task ids from create response data with empty fallback", (
   )
   assert.deepEqual(extractCreatedServerDownloadTaskIds({}), [])
   assert.deepEqual(extractCreatedServerDownloadTaskIds(undefined), [])
+})
+
+test("server download tasks have a stable newest-first order", () => {
+  const tasks = [
+    {
+      id: "task-1",
+      start_time: "2026-06-20T10:00:00Z",
+      end_time: null,
+    },
+    {
+      id: "task-3",
+      start_time: "2026-06-20T11:00:00Z",
+      end_time: null,
+    },
+    {
+      id: "task-2",
+      start_time: "2026-06-20T10:00:00Z",
+      end_time: null,
+    },
+  ]
+
+  assert.deepEqual(
+    tasks.sort(compareServerDownloadTasksStable).map((t) => t.id),
+    ["task-3", "task-2", "task-1"],
+  )
 })
 
 test("only failed server download tasks are retryable in the home drawer", () => {

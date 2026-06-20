@@ -39,6 +39,22 @@ export const extractCreatedServerDownloadTaskIds = (
   data?: { task_ids?: string[] | null } | null,
 ) => data?.task_ids?.filter(Boolean) ?? []
 
+const parseTaskTime = (value?: string | null) => {
+  if (!value) return 0
+  const time = new Date(value).getTime()
+  return Number.isNaN(time) ? 0 : time
+}
+
+export const compareServerDownloadTasksStable = (
+  a: Pick<TaskInfo, "id" | "start_time" | "end_time">,
+  b: Pick<TaskInfo, "id" | "start_time" | "end_time">,
+) => {
+  const aTime = parseTaskTime(a.start_time) || parseTaskTime(a.end_time)
+  const bTime = parseTaskTime(b.start_time) || parseTaskTime(b.end_time)
+  if (aTime !== bTime) return bTime - aTime
+  return b.id.localeCompare(a.id)
+}
+
 export const canRetryServerDownloadTask = (state: number) => state === 7
 
 export const canPauseServerDownloadTask = (task: ServerDownloadTaskStatus) =>

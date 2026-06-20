@@ -49,6 +49,7 @@ import {
   canPauseServerDownloadTask,
   canRetryServerDownloadTask,
   canResumeServerDownloadTask,
+  compareServerDownloadTasksStable,
   deriveServerDownloadProgressBytes,
   getFileSize,
   getServerDownloadStateText,
@@ -279,18 +280,20 @@ export const ServerDownloadTasks = () => {
   ): TaskWithView[] => {
     const fetchTime = Date.now()
     const previousById = new Map(previous.map((item) => [item.id, item]))
-    return next.map((task) => {
-      const prev = previousById.get(task.id)
-      const progressChanged = prev && prev.progress !== task.progress
-      return {
-        ...task,
-        curFetchTime: fetchTime,
-        prevFetchTime: progressChanged
-          ? prev?.curFetchTime
-          : prev?.prevFetchTime,
-        prevProgress: progressChanged ? prev?.progress : prev?.prevProgress,
-      }
-    })
+    return next
+      .map((task) => {
+        const prev = previousById.get(task.id)
+        const progressChanged = prev && prev.progress !== task.progress
+        return {
+          ...task,
+          curFetchTime: fetchTime,
+          prevFetchTime: progressChanged
+            ? prev?.curFetchTime
+            : prev?.prevFetchTime,
+          prevProgress: progressChanged ? prev?.progress : prev?.prevProgress,
+        }
+      })
+      .sort(compareServerDownloadTasksStable)
   }
 
   const applyUndone = (data?: TaskInfo[]) => {

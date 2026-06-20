@@ -16,6 +16,7 @@ import {
   createSignal,
   For,
   JSX,
+  on,
   onCleanup,
   Show,
 } from "solid-js"
@@ -37,6 +38,8 @@ export interface TasksProps {
   done: string
   nameAnalyzer: TaskNameAnalyzer
   canRetry?: boolean
+  refreshTrigger?: number
+  onTasksMoved?: () => void
 }
 
 export interface TaskViewAttribute {
@@ -93,6 +96,11 @@ export const Tasks = (props: TasksProps) => {
     const resp = await get()
     handleResp(resp, (data) => {
       const fetchTime = new Date().getTime()
+      const previousTaskIds = new Set(tasks().map((task) => task.id))
+      const nextTaskIds = new Set(data?.map((task) => task.id) ?? [])
+      const hasMovedTasks = [...previousTaskIds].some(
+        (id) => !nextTaskIds.has(id),
+      )
       const curFetchTimeMap: Record<string, number> = {}
       const prevFetchTimeMap: Record<string, number | undefined> = {}
       const curProgressMap: Record<string, number> = {}
@@ -131,9 +139,19 @@ export const Tasks = (props: TasksProps) => {
           })
           .sort(curSorter()) ?? [],
       )
+      if (hasMovedTasks) {
+        props.onTasksMoved?.()
+      }
     })
   }
   refresh()
+  createEffect(
+    on(
+      () => props.refreshTrigger,
+      () => refresh(),
+      { defer: true },
+    ),
+  )
   if (props.done === "undone") {
     const interval = setInterval(refresh, 2000)
     onCleanup(() => clearInterval(interval))
@@ -438,6 +456,16 @@ export const TypeTasks = (props: {
   canRetry?: boolean
 }) => {
   const t = useT()
+  const [refreshTriggers, setRefreshTriggers] = createSignal<
+    Record<string, number>
+  >({})
+  const notifyTasksMoved = (done: string) => {
+    const target = done === "done" ? "undone" : "done"
+    setRefreshTriggers((prev) => ({
+      ...prev,
+      [target]: (prev[target] ?? 0) + 1,
+    }))
+  }
   return (
     <VStack w="$full" alignItems="start" spacing="$4">
       <Heading size="xl">{t(`tasks.${props.type}`)}</Heading>
@@ -449,6 +477,8 @@ export const TypeTasks = (props: {
               done={done}
               canRetry={props.canRetry}
               nameAnalyzer={props.nameAnalyzer}
+              refreshTrigger={refreshTriggers()[done] ?? 0}
+              onTasksMoved={() => notifyTasksMoved(done)}
             />
           )}
         </For>
