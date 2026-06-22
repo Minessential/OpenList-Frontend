@@ -65,6 +65,8 @@
   "max_server_download_speed": "最大服务器下载速度（KiB/s）",
   "max_server_upload_speed": "最大服务器上传速度（KiB/s）",
   "server_download_dir": "服务器下载目录",
+  "server_download_task_max_retry": "服务器下载自动重试次数",
+  "server_download_task_max_retry-tips": "0 表示不自动重试。",
   "non_efs_zip_encoding": "ZIP 文件备选编码",
   "ocr_api": "OCR 接口",
   "offline_download_task_threads_num": "离线下载任务线程数",

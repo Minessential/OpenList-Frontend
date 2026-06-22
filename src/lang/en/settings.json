@@ -65,6 +65,8 @@
   "max_server_download_speed": "Max server download speed",
   "max_server_upload_speed": "Max server upload speed",
   "server_download_dir": "Server download directory",
+  "server_download_task_max_retry": "Server download auto retry count",
+  "server_download_task_max_retry-tips": "0 disables automatic retry.",
   "non_efs_zip_encoding": "Alternative encoding for ZIP Files",
   "ocr_api": "Ocr api",
   "offline_download_task_threads_num": "Offline download task threads num",

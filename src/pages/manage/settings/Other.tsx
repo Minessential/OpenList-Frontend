@@ -25,6 +25,8 @@ const OtherSettings = () => {
   const [transmissionUrl, setTransmissionUrl] = createSignal("")
   const [transmissionSeedTime, setTransmissionSeedTime] = createSignal("")
   const [serverDownloadDir, setServerDownloadDir] = createSignal("")
+  const [serverDownloadTaskMaxRetry, setServerDownloadTaskMaxRetry] =
+    createSignal("")
   const [pan115TempDir, set115TempDir] = createSignal("")
   const [pan115OpenTempDir, set115OpenTempDir] = createSignal("")
   const [pan123OpenTempDir, set123OpenTempDir] = createSignal("")
@@ -65,6 +67,12 @@ const OtherSettings = () => {
           {
             ...settings().find((i) => i.key === "server_download_dir")!,
             value: serverDownloadDir(),
+          },
+          {
+            ...settings().find(
+              (i) => i.key === "server_download_task_max_retry",
+            )!,
+            value: serverDownloadTaskMaxRetry(),
           },
         ]),
       ),
@@ -137,6 +145,10 @@ const OtherSettings = () => {
       )
       setServerDownloadDir(
         data.find((i) => i.key === "server_download_dir")?.value || "",
+      )
+      setServerDownloadTaskMaxRetry(
+        data.find((i) => i.key === "server_download_task_max_retry")?.value ||
+          "",
       )
       set115TempDir(data.find((i) => i.key === "115_temp_dir")?.value || "")
       set115OpenTempDir(
@@ -252,6 +264,13 @@ const OtherSettings = () => {
           {...settings().find((i) => i.key === "server_download_dir")!}
           value={serverDownloadDir()}
           onChange={(str) => setServerDownloadDir(str)}
+        />
+        <Item
+          {...settings().find(
+            (i) => i.key === "server_download_task_max_retry",
+          )!}
+          value={serverDownloadTaskMaxRetry()}
+          onChange={(str) => setServerDownloadTaskMaxRetry(str)}
         />
       </SimpleGrid>
       <Button
