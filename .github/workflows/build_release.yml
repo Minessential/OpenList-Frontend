@@ -10,7 +10,7 @@
 #
 # This workflow can be triggered by:
 #
-# - Pushing a tag that matches the pattern `v[0-9]+.[0-9]+.[0-9]+*` (semver format).
+# - Pushing a tag that matches the pattern `v*.*.*` (validated as SemVer, including build metadata like `v1.2.3+4`).
 # - Manually via the GitHub Actions UI with a version input.
 #
 # To create (pre-)release builds, we recommend that you use the `workflow_dispatch`.
@@ -20,12 +20,12 @@ name: Release Build
 on:
   push:
     tags:
-      - "v[0-9]+.[0-9]+.[0-9]+*"
+      - "v*.*.*"
   workflow_dispatch:
     inputs:
       version:
         description: |
-          Target version (e.g., 1.0.0), will create a tag named 'v<version>' and update package.json version
+          Target SemVer version (e.g., 1.0.0 or 1.0.0+4), will create a tag named 'v<version>' and update package.json version
         required: true
         type: string
 
@@ -40,11 +40,35 @@ jobs:
           fetch-depth: 0
           submodules: recursive
 
-      - name: Validate and trim semver
+      - name: Validate and trim SemVer
         id: semver
-        uses: matt-usurp/validate-semver@v3.0.0
-        with:
-          version: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.version || github.ref_name }}
+        env:
+          VERSION_INPUT: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.version || github.ref_name }}
+        run: |
+          raw_version="${VERSION_INPUT#v}"
+          semver_regex='^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-((0|[1-9][0-9]*|[0-9A-Za-z-]*[A-Za-z-][0-9A-Za-z-]*)(\.(0|[1-9][0-9]*|[0-9A-Za-z-]*[A-Za-z-][0-9A-Za-z-]*))*))?(\+([0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*))?$'
+
+          if [[ ! "$raw_version" =~ $semver_regex ]]; then
+            echo "Invalid SemVer version: $VERSION_INPUT"
+            echo "Expected formats like 1.0.0, 1.0.0-rc.1, or 1.0.0+4."
+            exit 1
+          fi
+
+          prerelease=""
+          build=""
+          version_without_build="${raw_version%%+*}"
+
+          if [[ "$raw_version" == *"+"* ]]; then
+            build="${raw_version#*+}"
+          fi
+
+          if [[ "$version_without_build" == *"-"* ]]; then
+            prerelease="${version_without_build#*-}"
+          fi
+
+          echo "version=$raw_version" >> "$GITHUB_OUTPUT"
+          echo "prerelease=$prerelease" >> "$GITHUB_OUTPUT"
+          echo "build=$build" >> "$GITHUB_OUTPUT"
 
       - name: Check if version is pre-release
         id: check_pre_release

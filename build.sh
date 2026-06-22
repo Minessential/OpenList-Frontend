@@ -82,6 +82,16 @@ set_defaults() {
     LITE_FLAG=${LITE_FLAG:-false}
 }
 
+validate_semver() {
+    local version="$1"
+    local semver_regex='^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-((0|[1-9][0-9]*|[0-9A-Za-z-]*[A-Za-z-][0-9A-Za-z-]*)(\.(0|[1-9][0-9]*|[0-9A-Za-z-]*[A-Za-z-][0-9A-Za-z-]*))*))?(\+([0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*))?$'
+
+    if [[ ! "$version" =~ $semver_regex ]]; then
+        log_error "Invalid SemVer version: ${version}. Expected formats like 1.0.0, 1.0.0-rc.1, or 1.0.0+4."
+        exit 1
+    fi
+}
+
 # Check git version and commit
 check_git_version_and_commit() {
     if [[ "$BUILD_TYPE" == "release" || "$ENFORCE_TAG" == "true" ]]; then
@@ -106,6 +116,8 @@ enforce_git_tag() {
 validate_git_tag() {
     package_version=$(grep '"version":' package.json | sed 's/.*"version": *"\([^"]*\)".*/\1/')
     git_version_clean=${git_version#v}
+    validate_semver "$git_version_clean"
+    validate_semver "$package_version"
     if [[ "$git_version_clean" != "$package_version" ]]; then
         log_error "Package.json version (${package_version}) does not match git tag (${git_version_clean})."
         exit 1
